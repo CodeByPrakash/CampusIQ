@@ -1,0 +1,4 @@
+logged_at,domain,entity_id,timestamp,is_true_anomaly,operator_notes,feat_kwh,feat_hour
+2026-10-04T01:48:17.633691,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14
+2026-10-04T01:49:45.380773,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14
+2026-10-04T02:29:51.803845,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14
