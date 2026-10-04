@@ -14,6 +14,8 @@ import SafetyView from "./components/SafetyView";
 import LoginView from "./components/LoginView";
 import SmoothScroll from "./components/SmoothScroll";
 import AiExecutiveAssistantModal from "./components/AiExecutiveAssistantModal";
+import CampusPlaceManagerModal from "./components/CampusPlaceManagerModal";
+import DataUploadStudioModal from "./components/DataUploadStudioModal";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Lock, ShieldAlert, ArrowRight, Shield } from "lucide-react";
@@ -33,6 +35,8 @@ function AppContent() {
   const [facilityType, setFacilityType] = useState("engineering_college");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isPlaceManagerOpen, setIsPlaceManagerOpen] = useState(false);
+  const [isUploadStudioOpen, setIsUploadStudioOpen] = useState(false);
 
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [mapData, setMapData] = useState<any>(null);
@@ -49,6 +53,13 @@ function AppContent() {
     industrial_estate: "Industrial Estate Zone",
     municipal_campus: "Municipal Corporation Center",
   };
+
+  // Synchronize active facility type when authenticated user role changes
+  useEffect(() => {
+    if (user?.defaultSector) {
+      setFacilityType(user.defaultSector);
+    }
+  }, [user?.role]);
 
   // Load sector data from ML backend
   useEffect(() => {
@@ -172,6 +183,8 @@ function AppContent() {
             subtitle={currentMeta.subtitle}
             selectedFacility={facilityType}
             onFacilityChange={(f) => setFacilityType(f)}
+            onOpenPlaceManager={() => setIsPlaceManagerOpen(true)}
+            onOpenUploadStudio={() => setIsUploadStudioOpen(true)}
           />
 
           {/* Active View Rendering or RBAC Guard */}
@@ -209,10 +222,26 @@ function AppContent() {
                   <DashboardView
                     data={dashboardData}
                     onNavigate={(v) => setActiveNav(v as NavItem)}
+                    facilityType={facilityType}
+                    facilityName={facilityLabels[facilityType] || "GCEK Kalahandi Campus"}
+                    onOpenPlaceManager={() => setIsPlaceManagerOpen(true)}
                   />
                 )}
-                {activeNav === "campus-map" && <CampusMapView data={mapData} facilityType={facilityType} />}
-                {activeNav === "energy-analytics" && <EnergyAnalyticsView data={energyData} />}
+                {activeNav === "campus-map" && (
+                  <CampusMapView
+                    data={mapData}
+                    facilityType={facilityType}
+                    facilityName={facilityLabels[facilityType] || "GCEK Kalahandi Campus"}
+                    onOpenPlaceManager={() => setIsPlaceManagerOpen(true)}
+                  />
+                )}
+                {activeNav === "energy-analytics" && (
+                  <EnergyAnalyticsView
+                    data={energyData}
+                    facilityType={facilityType}
+                    facilityName={facilityLabels[facilityType] || "GCEK Kalahandi Campus"}
+                  />
+                )}
                 {activeNav === "ai-insights" && (
                   <AiInsightsView
                     data={insightsData}
@@ -221,14 +250,26 @@ function AppContent() {
                     onRefresh={() => getAiInsights(facilityType).then(setInsightsData)}
                   />
                 )}
-                {activeNav === "assets-operations" && <AssetsOperationsView data={assetsData} />}
+                {activeNav === "assets-operations" && (
+                  <AssetsOperationsView
+                    data={assetsData}
+                    facilityType={facilityType}
+                    facilityName={facilityLabels[facilityType] || "GCEK Kalahandi Campus"}
+                  />
+                )}
                 {activeNav === "simulation" && (
                   <SimulationView
                     facilityName={facilityLabels[facilityType] || "GCEK Kalahandi Campus"}
                     facilityType={facilityType}
                   />
                 )}
-                {activeNav === "reports" && <ReportsView data={reportsData} />}
+                {activeNav === "reports" && (
+                  <ReportsView
+                    data={reportsData}
+                    facilityType={facilityType}
+                    facilityName={facilityLabels[facilityType] || "GCEK Kalahandi Campus"}
+                  />
+                )}
                 {activeNav === "safety" && <SafetyView data={safetyData} />}
               </>
             )}
@@ -250,6 +291,30 @@ function AppContent() {
           maintenanceAlerts: assetsData?.priority_maintenance?.map((m: any) => `${m.asset_name}: ${m.action_required}`) || [],
           safetyStatus: safetyData?.safety_analytics?.overall_safety_status || "97.1% SLA Compliant",
           sustainabilityScore: reportsData?.sustainability_score || 91,
+        }}
+      />
+
+      {/* Custom Campus, Places & Multi-Sector Entry Manager Modal */}
+      <CampusPlaceManagerModal
+        isOpen={isPlaceManagerOpen}
+        onClose={() => setIsPlaceManagerOpen(false)}
+        activeCampusId={facilityType}
+        onSelectCampus={(cId) => {
+          setFacilityType(cId);
+          setIsPlaceManagerOpen(false);
+        }}
+      />
+
+      {/* Real Data Telemetry Ingestion & CSV Studio Modal */}
+      <DataUploadStudioModal
+        isOpen={isUploadStudioOpen}
+        onClose={() => setIsUploadStudioOpen(false)}
+        facilityType={facilityType}
+        facilityName={facilityLabels[facilityType] || "GCEK Kalahandi Campus"}
+        onDatasetApplied={() => {
+          // Trigger refresh of energy analytics and dashboard data
+          getEnergyAnalytics(facilityType).then(setEnergyData);
+          getDashboardOverview(facilityType).then(setDashboardData);
         }}
       />
     </div>

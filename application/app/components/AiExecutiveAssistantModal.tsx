@@ -269,7 +269,7 @@ export default function AiExecutiveAssistantModal({
         </div>
 
         {/* Chat / Executive Briefing Stream Container */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain p-6 space-y-6">
           {messages.map((msg) => {
             const isAi = msg.sender === "ai";
             return (

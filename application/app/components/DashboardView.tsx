@@ -15,6 +15,26 @@ import {
   TrendingUp,
   Layers,
   Filter,
+  Factory,
+  Hospital,
+  GraduationCap,
+  Landmark,
+  Gauge,
+  Flame,
+  Radio,
+  HeartPulse,
+  Stethoscope,
+  Biohazard,
+  ShieldCheck,
+  AlertTriangle,
+  Cpu,
+  Wrench,
+  CheckCircle2,
+  Clock,
+  Settings,
+  Plus,
+  Compass,
+  FileText
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -31,9 +51,18 @@ import { ChartTooltipContent } from "./ui/chart";
 interface DashboardViewProps {
   data: any;
   onNavigate: (view: string) => void;
+  facilityType?: string;
+  facilityName?: string;
+  onOpenPlaceManager?: () => void;
 }
 
-export default function DashboardView({ data, onNavigate }: DashboardViewProps) {
+export default function DashboardView({
+  data,
+  onNavigate,
+  facilityType = "engineering_college",
+  facilityName = "GCEK Kalahandi Campus",
+  onOpenPlaceManager
+}: DashboardViewProps) {
   const [activeSeries, setActiveSeries] = useState<{
     energy: boolean;
     water: boolean;
@@ -83,20 +112,34 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
     return result;
   };
 
-  const rawTrends = data?.trends_7days || {
-    dates: getDynamicDays(7),
-    energy_kwh: [1200, 1320, 1450, 1500, 1350, 1280, 1600],
-    water_kl: [300, 350, 420, 450, 410, 400, 480],
-    waste_kg: [60, 70, 75, 82, 78, 72, 88],
-  };
+  const dayCount = timeRange === "30D" ? 30 : timeRange === "14D" ? 14 : 7;
+  const dates = getDynamicDays(dayCount);
 
-  // Convert to Recharts array format
-  const chartData = (rawTrends.dates || []).map((date: string, idx: number) => ({
-    date,
-    Energy: rawTrends.energy_kwh?.[idx] || 1200 + idx * 50,
-    Water: rawTrends.water_kl?.[idx] || 300 + idx * 25,
-    Waste: rawTrends.waste_kg?.[idx] || 60 + idx * 4,
-  }));
+  // Baseline telemetry profiles with natural wave patterns
+  const baseEnergy = [1240, 1320, 1450, 1520, 1380, 1290, 1610, 1480, 1530, 1390, 1420, 1580, 1640, 1490];
+  const baseWater = [82, 78, 85, 88, 84, 91, 80, 86, 89, 79, 83, 92, 87, 85];
+  const baseWaste = [12, 14, 18, 19, 11, 15, 8, 16, 17, 13, 14, 20, 18, 15];
+
+  // Convert to Recharts array format with dual-axis normalized values
+  const chartData = dates.map((date, idx) => {
+    if (dayCount === 7 && data?.trends_7days?.energy_kwh?.[idx] != null) {
+      return {
+        date,
+        Energy: data.trends_7days.energy_kwh[idx],
+        Water: data.trends_7days.water_kl?.[idx] ?? (baseWater[idx % baseWater.length]),
+        Waste: data.trends_7days.waste_kg?.[idx] ?? (baseWaste[idx % baseWaste.length]),
+      };
+    }
+    const e = baseEnergy[idx % baseEnergy.length] + Math.sin(idx * 0.8) * 80;
+    const w = baseWater[idx % baseWater.length] + Math.cos(idx * 0.7) * 5;
+    const s = baseWaste[idx % baseWaste.length] + Math.sin(idx * 0.5) * 3;
+    return {
+      date,
+      Energy: Math.round(e),
+      Water: Math.round(Math.max(10, w)),
+      Waste: Math.round(Math.max(5, s)),
+    };
+  });
 
   const toggleSeries = (key: "energy" | "water" | "waste") => {
     setActiveSeries((prev) => ({
@@ -216,6 +259,219 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
           </div>
         </div>
       </div>
+
+      {/* SPECIALIZED INDUSTRIAL SECTOR PANEL (Rendered when Industrial Estate is active) */}
+      {facilityType === "industrial_estate" && (
+        <div className="dashboard-card p-8 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-white border border-amber-500/30 shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-md">
+                <Factory className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-black tracking-tight text-white">
+                    Heavy Industrial SCADA &amp; High-Voltage Operations Center
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-950">
+                    Enterprise SCADA
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-400 mt-0.5">
+                  Real-time power factor, high-pressure steam boilers, ETP effluent telemetry, and shift-wise TOD tariff balancing.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1.5">
+                <Gauge className="w-4 h-4 text-amber-400" /> Max Demand: 2,840 kVA
+              </span>
+            </div>
+          </div>
+
+          {/* 4 Specialized Industrial Telemetry Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Power Factor & Harmonics */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">3-Phase Power Factor</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">0.985</span>
+                <span className="text-xs font-bold text-emerald-400">Lagging (Pass)</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                Penalty threshold: &lt; 0.85 &bull; Incentive rebate: <span className="text-emerald-400 font-bold">+₹42,000/mo</span>
+              </p>
+            </div>
+
+            {/* High Pressure Steam Boiler */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Boiler Steam Pressure</span>
+                <Flame className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">12.4</span>
+                <span className="text-sm font-bold text-slate-400">bar</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                Steam Temp: <span className="text-amber-400 font-bold">340°C</span> &bull; Flue Gas O₂: 3.2%
+              </p>
+            </div>
+
+            {/* Machine Harmonic Vibration (ISO 10816-3) */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Vibration Health</span>
+                <Radio className="w-4 h-4 text-sky-400" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">1.8</span>
+                <span className="text-sm font-bold text-slate-400">mm/s</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                Ball Mill Motor: <span className="text-emerald-400 font-bold">Class II Good</span> &bull; 64.2°C Bearing
+              </p>
+            </div>
+
+            {/* ETP Effluent Continuous Telemetry */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">ETP Effluent BOD / COD</span>
+                <Droplets className="w-4 h-4 text-teal-400" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">18</span>
+                <span className="text-xs font-bold text-slate-400">mg/L BOD</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                COD: <span className="text-teal-400 font-bold">74 mg/L</span> &bull; pH: 7.24 (PCB Limit compliant)
+              </p>
+            </div>
+          </div>
+
+          {/* Shift-Wise TOD Production Load Balancing Matrix */}
+          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-black text-white flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-400" /> Time-of-Day (TOD) Shift Production Balancing
+              </h4>
+              <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                Automated load distribution across Shift A (Morning), Shift B (Peak Tariff Shave), and Night Shift C (Off-Peak Max).
+              </p>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                Shift A: 100% Load
+              </span>
+              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                Shift B: 82% (TOD Peak Shave)
+              </span>
+              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                Night Shift C: 115% Off-Peak
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SPECIALIZED HOSPITAL CLINICAL SECTOR PANEL (Rendered when Hospital is active) */}
+      {facilityType === "hospital" && (
+        <div className="dashboard-card p-8 bg-gradient-to-br from-slate-900 via-[#0a1526] to-slate-900 text-white border border-sky-500/30 shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shadow-md">
+                <Hospital className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-black tracking-tight text-white">
+                    Clinical Life-Support, MGPS &amp; Cleanroom Infrastructure Command
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500 text-slate-950">
+                    Clinical Grade 1
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-400 mt-0.5">
+                  Liquid Medical Oxygen (LMO), Operation Theatre cleanroom differential pressure, BMW segregation, and N+1 power redundancy.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1.5">
+                <HeartPulse className="w-4 h-4 text-rose-400" /> Life-Support Active: 100%
+              </span>
+            </div>
+          </div>
+
+          {/* 4 Specialized Healthcare Telemetry Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* LMO Medical Oxygen Tank */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Medical Oxygen (LMO)</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">84%</span>
+                <span className="text-xs font-bold text-emerald-400">4.2 bar Pressure</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                Reserve Autonomy: <span className="text-emerald-400 font-bold">14 Days</span> &bull; Central Vacuum: -0.75 bar
+              </p>
+            </div>
+
+            {/* OT Suite Cleanroom HVAC */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">OT Cleanroom HVAC</span>
+                <Stethoscope className="w-4 h-4 text-sky-400" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">+25</span>
+                <span className="text-sm font-bold text-slate-400">Pa Positive</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                ISO Class 5 &bull; <span className="text-sky-400 font-bold">26 ACH Air Changes</span> (Sterile Barrier)
+              </p>
+            </div>
+
+            {/* N+1 Critical Life-Support Power */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Life-Support Power</span>
+                <Zap className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">100%</span>
+                <span className="text-xs font-bold text-emerald-400">0ms UPS Sync</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                Dual 1,500 kVA DG Standby &bull; Battery Bank: <span className="text-emerald-400 font-bold">4.5 Hrs</span>
+              </p>
+            </div>
+
+            {/* Bio-Medical Waste (BMW Rules 2016) */}
+            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Bio-Medical Waste Log</span>
+                <Biohazard className="w-4 h-4 text-rose-400" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-black text-white">152</span>
+                <span className="text-sm font-bold text-slate-400">kg / day</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold mt-2">
+                Yellow: 48kg &bull; Red: 72kg &bull; Blue: 24kg &bull; White: 8kg (Barcoded)
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Middle Grid: Large Facility Health Gauge & Prioritized Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
@@ -341,13 +597,12 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${
-                        isCrit
+                      className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${isCrit
                           ? "bg-rose-50 dark:bg-rose-950/50 text-rose-500 border border-rose-200 dark:border-rose-800"
                           : isWarn
                             ? "bg-amber-50 dark:bg-amber-950/50 text-amber-500 border border-amber-200 dark:border-amber-800"
                             : "bg-sky-50 dark:bg-sky-950/50 text-sky-500 border border-sky-200 dark:border-sky-800"
-                      }`}
+                        }`}
                     >
                       <AlertCircle className="w-6 h-6 stroke-[2.5]" />
                     </div>
@@ -357,13 +612,12 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
                     </div>
                   </div>
                   <span
-                    className={`text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider shrink-0 ${
-                      isCrit
+                    className={`text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider shrink-0 ${isCrit
                         ? "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
                         : isWarn
                           ? "bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
                           : "bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800"
-                    }`}
+                      }`}
                   >
                     {alert.severity}
                   </span>
@@ -381,7 +635,7 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
             <div className="flex items-center gap-3">
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">Trends Overview</h3>
               <span className="px-3 py-1 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/70 text-orange-700 text-xs font-black rounded-full flex items-center gap-1.5 shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 fill-orange-500" /> Shadcn Interactive Graph
+                <Sparkles className="w-3.5 h-3.5 fill-orange-500" /> Interactive Graph
               </span>
             </div>
             <p className="text-xs font-bold text-slate-400 mt-1">Multi-modal telemetry telemetry curves over 7-day rolling window</p>
@@ -392,11 +646,10 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
             {/* Energy Filter Pill */}
             <button
               onClick={() => toggleSeries("energy")}
-              className={`px-4 py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border ${
-                activeSeries.energy
+              className={`px-4 py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border ${activeSeries.energy
                   ? "bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-800 shadow-xs"
                   : "bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 opacity-60 line-through"
-              }`}
+                }`}
             >
               <span className="w-3 h-3 rounded-full bg-orange-500 shadow-xs" />
               <span>Energy (kWh)</span>
@@ -405,11 +658,10 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
             {/* Water Filter Pill */}
             <button
               onClick={() => toggleSeries("water")}
-              className={`px-4 py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border ${
-                activeSeries.water
+              className={`px-4 py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border ${activeSeries.water
                   ? "bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 shadow-xs"
                   : "bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 opacity-60 line-through"
-              }`}
+                }`}
             >
               <span className="w-3 h-3 rounded-full bg-sky-500 shadow-xs" />
               <span>Water (kL)</span>
@@ -418,11 +670,10 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
             {/* Waste Filter Pill */}
             <button
               onClick={() => toggleSeries("waste")}
-              className={`px-4 py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border ${
-                activeSeries.waste
+              className={`px-4 py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer border ${activeSeries.waste
                   ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs"
                   : "bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 opacity-60 line-through"
-              }`}
+                }`}
             >
               <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-xs" />
               <span>Waste (kg)</span>
@@ -434,11 +685,10 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
                 <button
                   key={range}
                   onClick={() => setTimeRange(range)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
-                    timeRange === range
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${timeRange === range
                       ? "bg-white dark:bg-slate-950 text-slate-950 dark:text-white shadow-xs"
                       : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                  }`}
+                    }`}
                 >
                   {range}
                 </button>
@@ -447,10 +697,18 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
           </div>
         </div>
 
-        {/* High-Performance Recharts Chart Container */}
+        {/* High-Performance Recharts Chart Container with Dual Y-Axes */}
         <div className="w-full h-80 pt-2">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+            <AreaChart
+              data={chartData}
+              margin={{
+                top: 10,
+                right: (activeSeries.water || activeSeries.waste) && activeSeries.energy ? 35 : 15,
+                left: activeSeries.energy ? 10 : 0,
+                bottom: 0,
+              }}
+            >
               <defs>
                 {/* Energy Gradient */}
                 <linearGradient id="shadcnEnergy" x1="0" y1="0" x2="0" y2="1">
@@ -480,13 +738,35 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
                 axisLine={false}
                 dy={10}
               />
+
+              {/* Primary Y-Axis for Energy (kWh) on Left */}
               <YAxis
-                stroke="#94a3b8"
-                fontSize={12}
+                yAxisId="energy"
+                orientation="left"
+                stroke="#f97316"
+                fontSize={11}
                 fontWeight={700}
                 tickLine={false}
                 axisLine={false}
                 dx={-5}
+                hide={!activeSeries.energy}
+                tickFormatter={(v) => `${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v} kWh`}
+                domain={["auto", "auto"]}
+              />
+
+              {/* Secondary Y-Axis for Water (kL) & Waste (kg) on Right (or Left if Energy is disabled) */}
+              <YAxis
+                yAxisId="secondary"
+                orientation={activeSeries.energy ? "right" : "left"}
+                stroke="#0ea5e9"
+                fontSize={11}
+                fontWeight={700}
+                tickLine={false}
+                axisLine={false}
+                dx={activeSeries.energy ? 8 : -5}
+                hide={!activeSeries.water && !activeSeries.waste}
+                tickFormatter={(v) => `${v} ${activeSeries.water ? "kL" : "kg"}`}
+                domain={["auto", "auto"]}
               />
 
               <Tooltip
@@ -496,6 +776,7 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
 
               {activeSeries.energy && (
                 <Area
+                  yAxisId="energy"
                   type="monotone"
                   dataKey="Energy"
                   name="Energy (kWh)"
@@ -510,6 +791,7 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
 
               {activeSeries.water && (
                 <Area
+                  yAxisId="secondary"
                   type="monotone"
                   dataKey="Water"
                   name="Water (kL)"
@@ -524,6 +806,7 @@ export default function DashboardView({ data, onNavigate }: DashboardViewProps) 
 
               {activeSeries.waste && (
                 <Area
+                  yAxisId="secondary"
                   type="monotone"
                   dataKey="Waste"
                   name="Waste (kg)"

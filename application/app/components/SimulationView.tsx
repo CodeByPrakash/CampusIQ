@@ -26,17 +26,22 @@ import {
   Settings,
   ShieldCheck,
   TrendingUp,
+  BarChart3,
+  Activity,
+  Layers,
 } from "lucide-react";
 import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  Cell,
 } from "recharts";
-import { ChartTooltipContent } from "./ui/chart";
 import { runSimulation, fetchAiLlmChat, buildSimulationPrompt } from "../lib/api";
 
 interface SimulationViewProps {
@@ -52,9 +57,59 @@ export default function SimulationView({
 }: SimulationViewProps) {
   const [selectedScenario, setSelectedScenario] = useState("reduce_hvac");
   const [sliderValue, setSliderValue] = useState(25);
+  const [chartType, setChartType] = useState<"bar" | "area" | "delta">("bar");
+
+  // Sector-tailored building/zone options
+  const getSectorBuildingOptions = () => {
+    switch (facilityType) {
+      case "industrial_estate":
+        return [
+          { id: "potline_1", label: "Smelter Potline 1 (Electrolysis)", baseline: 24500 },
+          { id: "substation_220kv", label: "220kV Captive Substation", baseline: 18200 },
+          { id: "furnace_b", label: "Heavy Induction Furnace B", baseline: 14800 },
+          { id: "etp_plant", label: "Effluent Treatment Plant (ETP)", baseline: 7600 },
+          { id: "compressor_station", label: "High-Pressure Compressor Hub", baseline: 5900 },
+          { id: "bauxite_conveyor", label: "Bauxite Conveyor Drive 04", baseline: 4100 },
+        ];
+      case "hospital":
+        return [
+          { id: "trauma_icu", label: "Trauma ICU & Emergency Wing", baseline: 8900 },
+          { id: "ot_complex", label: "Operation Theatre Suite (OT-04)", baseline: 7200 },
+          { id: "hvac_cleanroom", label: "Sterile Cleanroom & HVAC", baseline: 6400 },
+          { id: "radiology_mri", label: "Diagnostic Radiology & MRI", baseline: 5100 },
+          { id: "inpatient_ward", label: "Inpatient Ward Block B", baseline: 3800 },
+          { id: "biomed_hub", label: "Cryogenic LMO & Biomedical Hub", baseline: 2700 },
+        ];
+      case "municipal_campus":
+        return [
+          { id: "bulk_pumping", label: "Kuakhai River Intake Pumping", baseline: 16500 },
+          { id: "sewage_lift", label: "Central Sewage Treatment Lift", baseline: 9800 },
+          { id: "mrf_balers", label: "Swachh MRF Baler Hydraulics", baseline: 6200 },
+          { id: "streetlighting_z4", label: "Zone-4 LoRaWAN Streetlighting", baseline: 5400 },
+          { id: "iccc_command", label: "ICCC Command Center & Server", baseline: 4100 },
+          { id: "ev_hub", label: "Public EV Fast-Charging Hub", baseline: 3600 },
+        ];
+      case "engineering_college":
+      default:
+        return [
+          { id: "admin_academic_block", label: "Main Academic & Admin Block", baseline: 8240 },
+          { id: "mech_civil_block", label: "Mechanical & Civil Workshops", baseline: 6120 },
+          { id: "cse_ee_block", label: "CSE & Electrical IoT Center", baseline: 5490 },
+          { id: "mbh_hostel", label: "Mahanadi Boys Hostel (MBH)", baseline: 4320 },
+          { id: "ibh_hostel", label: "Indravati Boys Hostel (IBH)", baseline: 3980 },
+          { id: "tgh_hostel", label: "Tel Girls Hostel (TGH)", baseline: 3650 },
+          { id: "central_library", label: "Central Library & Digital Hub", baseline: 1850 },
+          { id: "canteen_sac", label: "Student Activity Center & Canteen", baseline: 2860 },
+        ];
+    }
+  };
+
+  const buildingOptions = getSectorBuildingOptions();
+
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>([
-    "admin_academic_block",
-    "cse_ee_block",
+    buildingOptions[0]?.id || "admin_academic_block",
+    buildingOptions[1]?.id || "cse_ee_block",
+    buildingOptions[2]?.id || "mech_civil_block",
   ]);
   const [simulationPeriod, setSimulationPeriod] = useState("Next 4 weeks");
   const [loading, setLoading] = useState(false);
@@ -114,17 +169,6 @@ export default function SimulationView({
       sliderLabel: "Zone load-shed ratio",
       unit: "%",
     },
-  ];
-
-  const buildingOptions = [
-    { id: "admin_academic_block", label: "Main Academic & Admin Block", baseline: 8240 },
-    { id: "mech_civil_block", label: "Mechanical & Civil Workshops", baseline: 6120 },
-    { id: "cse_ee_block", label: "CSE & Electrical IoT Center", baseline: 5490 },
-    { id: "mbh_hostel", label: "Mahanadi Boys Hostel (MBH)", baseline: 4320 },
-    { id: "ibh_hostel", label: "Indravati Boys Hostel (IBH)", baseline: 3980 },
-    { id: "tgh_hostel", label: "Tel Girls Hostel (TGH)", baseline: 3650 },
-    { id: "central_library", label: "Central Library & Digital Hub", baseline: 1850 },
-    { id: "canteen_sac", label: "Student Activity Center & Canteen", baseline: 2860 },
   ];
 
   const toggleBuilding = (id: string) => {
@@ -213,7 +257,7 @@ export default function SimulationView({
     {
       icon: TrendingUp,
       label: "4-Week Phased Rollout Plan",
-      prompt: `Detail a 4-week step-by-step rollout schedule for the "${activeScenarioObj.title}" policy (${sliderValue}%) across selected GCEK Kalahandi buildings.`,
+      prompt: `Detail a 4-week step-by-step rollout schedule for the "${activeScenarioObj.title}" policy (${sliderValue}%) across selected ${facilityName} nodes.`,
     },
     {
       icon: IndianRupee,
@@ -238,13 +282,21 @@ export default function SimulationView({
     .map((b) => {
       const reductionFactor = 1 - (sliderValue * 0.7) / 100;
       const simulated = Math.round(b.baseline * reductionFactor);
+      const saved = b.baseline - simulated;
+      const pctReduction = Math.round(((b.baseline - simulated) / b.baseline) * 100);
       return {
         building: b.label,
+        shortLabel: b.label.length > 22 ? `${b.label.slice(0, 20)}...` : b.label,
         Baseline: b.baseline,
         Simulated: simulated,
-        Saved: b.baseline - simulated,
+        Saved: saved,
+        Pct: pctReduction,
       };
     });
+
+  const totalBaselineKwh = simChartData.reduce((acc, curr) => acc + curr.Baseline, 0);
+  const totalSimulatedKwh = simChartData.reduce((acc, curr) => acc + curr.Simulated, 0);
+  const totalSavedKwh = totalBaselineKwh - totalSimulatedKwh;
 
   return (
     <div className="space-y-7">
@@ -345,7 +397,7 @@ export default function SimulationView({
               <label className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wide block mb-3">
                 Targeted Campus Structures (GCEK)
               </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-56 custom-scrollbar overflow-y-auto overscroll-contain pr-1">
                 {buildingOptions.map((b) => {
                   const checked = selectedBuildings.includes(b.id);
                   return (
@@ -455,41 +507,350 @@ export default function SimulationView({
       </div>
 
       {/* Baseline vs Simulated Comparison Chart */}
-      <div className="dashboard-card p-8 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="dashboard-card p-8 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        {/* Top Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                 Baseline vs Simulated Facility Load
               </h3>
-              <span className="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
-                <TrendingDown className="w-3.5 h-3.5" /> Projected -{sliderValue}% Peak Shave
+              <span className="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5 shadow-2xs">
+                <TrendingDown className="w-3.5 h-3.5" /> Projected -{Math.round(sliderValue * 0.7)}% Peak Shave
               </span>
             </div>
-            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
-              Building-level comparison showing projected reduction per billing cycle
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
+              Building &amp; node level load breakdown comparing baseline against simulated policy for {facilityName}
             </p>
           </div>
-          <div className="flex items-center gap-5 text-xs font-extrabold">
-            <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <span className="w-3.5 h-3.5 rounded-sm bg-slate-300 dark:bg-slate-600" /> Current Baseline (kWh)
-            </span>
-            <span className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
-              <span className="w-3.5 h-3.5 rounded-sm bg-emerald-500" /> Simulated Load (kWh)
-            </span>
+
+          {/* Segmented Controls & Legend */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* View Mode Segmented Switcher */}
+            <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setChartType("bar")}
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                  chartType === "bar"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-extrabold"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-orange-500" />
+                <span>Side-by-Side</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartType("area")}
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                  chartType === "area"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-extrabold"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Load Trend</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartType("delta")}
+                className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                  chartType === "delta"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-extrabold"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <TrendingDown className="w-3.5 h-3.5 text-amber-500" />
+                <span>Savings Delta</span>
+              </button>
+            </div>
+
+            {/* Visual Legend */}
+            <div className="flex items-center gap-4 text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-indigo-400 dark:text-indigo-300">
+                <span className="w-3 h-3 rounded-md bg-gradient-to-b from-indigo-400 to-indigo-600 border border-indigo-300 shadow-xs" /> Baseline (kWh)
+              </span>
+              <span className="flex items-center gap-1.5 text-emerald-400 dark:text-emerald-300">
+                <span className="w-3 h-3 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-600 border border-emerald-300 shadow-xs" /> Simulated (kWh)
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="w-full h-72">
+        {/* Quick KPI Strip inside chart */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800/80">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Total Baseline</span>
+            <p className="text-base font-black text-indigo-500 dark:text-indigo-300 mt-0.5">
+              {totalBaselineKwh.toLocaleString()} <span className="text-xs font-semibold text-slate-400">kWh</span>
+            </p>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Simulated Target</span>
+            <p className="text-base font-black text-emerald-500 dark:text-emerald-400 mt-0.5">
+              {totalSimulatedKwh.toLocaleString()} <span className="text-xs font-semibold text-slate-400">kWh</span>
+            </p>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">Net Energy Saved</span>
+            <p className="text-base font-black text-teal-500 dark:text-teal-300 mt-0.5">
+              -{totalSavedKwh.toLocaleString()} <span className="text-xs font-semibold text-slate-400">kWh</span>
+            </p>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Est. Cost Shave</span>
+            <p className="text-base font-black text-amber-500 dark:text-amber-400 mt-0.5">
+              ₹{Math.round(totalSavedKwh * 8.2).toLocaleString()} <span className="text-xs font-semibold text-slate-400">/mo</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Chart View Area */}
+        <div className="w-full h-80 pt-1">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={simChartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
-              <XAxis dataKey="building" stroke="#94a3b8" fontSize={11} fontWeight={700} axisLine={false} tickLine={false} />
-              <YAxis stroke="#94a3b8" fontSize={11} fontWeight={700} axisLine={false} tickLine={false} unit=" kWh" />
-              <Tooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="Baseline" name="Baseline (kWh)" fill="#64748b" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="Simulated" name="Simulated (kWh)" fill="#10b981" radius={[6, 6, 0, 0]} />
-            </BarChart>
+            {chartType === "area" ? (
+              <AreaChart data={simChartData} margin={{ top: 15, right: 25, left: 0, bottom: 25 }}>
+                <defs>
+                  <linearGradient id="simBaselineAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.65} />
+                    <stop offset="60%" stopColor="#4f46e5" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#312e81" stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="simTargetAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.75} />
+                    <stop offset="60%" stopColor="#059669" stopOpacity={0.30} />
+                    <stop offset="100%" stopColor="#064e3b" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.15} />
+                <XAxis
+                  dataKey="shortLabel"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  fontWeight={700}
+                  axisLine={false}
+                  tickLine={false}
+                  dy={10}
+                />
+                <YAxis
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  fontWeight={700}
+                  axisLine={false}
+                  tickLine={false}
+                  unit=" kWh"
+                />
+                <Tooltip
+                  cursor={{ stroke: "rgba(99, 102, 241, 0.3)", strokeWidth: 1.5, strokeDasharray: "4 4" }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/80 p-3.5 rounded-2xl shadow-xl text-xs space-y-2 min-w-[210px]">
+                          <p className="font-black text-white">{data.building}</p>
+                          <div className="flex items-center justify-between text-indigo-300">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-xs" />
+                              Baseline Load:
+                            </span>
+                            <span className="font-bold">{data.Baseline.toLocaleString()} kWh</span>
+                          </div>
+                          <div className="flex items-center justify-between text-emerald-400">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" />
+                              Simulated Load:
+                            </span>
+                            <span className="font-bold">{data.Simulated.toLocaleString()} kWh</span>
+                          </div>
+                          <div className="pt-1.5 border-t border-slate-700/80 flex items-center justify-between text-teal-300 font-extrabold">
+                            <span>Projected Shave:</span>
+                            <span>-{data.Saved.toLocaleString()} kWh (-{data.Pct}%)</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="Baseline"
+                  name="Baseline (kWh)"
+                  stroke="#818cf8"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#simBaselineAreaGrad)"
+                  dot={{ r: 4, fill: "#1e1b4b", stroke: "#818cf8", strokeWidth: 2 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="Simulated"
+                  name="Simulated (kWh)"
+                  stroke="#34d399"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#simTargetAreaGrad)"
+                  dot={{ r: 4.5, fill: "#022c22", stroke: "#34d399", strokeWidth: 2.5 }}
+                />
+              </AreaChart>
+            ) : chartType === "delta" ? (
+              <BarChart
+                data={simChartData}
+                margin={{ top: 15, right: 25, left: 0, bottom: 25 }}
+                barCategoryGap="25%"
+                maxBarSize={38}
+              >
+                <defs>
+                  <linearGradient id="simDeltaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.95} />
+                    <stop offset="40%" stopColor="#f59e0b" stopOpacity={0.70} />
+                    <stop offset="85%" stopColor="#d97706" stopOpacity={0.30} />
+                    <stop offset="100%" stopColor="#78350f" stopOpacity={0.08} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.15} />
+                <XAxis
+                  dataKey="shortLabel"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  fontWeight={700}
+                  axisLine={false}
+                  tickLine={false}
+                  dy={10}
+                />
+                <YAxis
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  fontWeight={700}
+                  axisLine={false}
+                  tickLine={false}
+                  unit=" kWh"
+                />
+                <Tooltip
+                  cursor={{ fill: "rgba(245, 158, 11, 0.05)", stroke: "rgba(245, 158, 11, 0.2)", strokeWidth: 1, strokeDasharray: "4 4", rx: 12 }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/80 p-3.5 rounded-2xl shadow-xl text-xs space-y-2 min-w-[200px]">
+                          <p className="font-black text-white">{data.building}</p>
+                          <div className="flex items-center justify-between text-amber-400">
+                            <span>Energy Saved:</span>
+                            <span className="font-bold">{data.Saved.toLocaleString()} kWh</span>
+                          </div>
+                          <div className="flex items-center justify-between text-emerald-400">
+                            <span>Reduction:</span>
+                            <span className="font-bold">-{data.Pct}%</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="Saved"
+                  name="Energy Saved (kWh)"
+                  fill="url(#simDeltaGrad)"
+                  stroke="#fbbf24"
+                  strokeWidth={1.5}
+                  radius={[8, 8, 2, 2]}
+                />
+              </BarChart>
+            ) : (
+              <BarChart
+                data={simChartData}
+                margin={{ top: 15, right: 25, left: 0, bottom: 25 }}
+                barGap={8}
+                barCategoryGap="22%"
+                maxBarSize={36}
+              >
+                <defs>
+                  {/* Baseline: Vibrant Electric Indigo Top Depth -> Transparent Bottom Fade */}
+                  <linearGradient id="simBaselineBarGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#818cf8" stopOpacity={0.95} />
+                    <stop offset="35%" stopColor="#6366f1" stopOpacity={0.70} />
+                    <stop offset="80%" stopColor="#4338ca" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#312e81" stopOpacity={0.08} />
+                  </linearGradient>
+
+                  {/* Simulated: Vibrant Mint-Emerald Top Depth -> Transparent Bottom Fade */}
+                  <linearGradient id="simTargetBarGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#34d399" stopOpacity={0.95} />
+                    <stop offset="35%" stopColor="#10b981" stopOpacity={0.70} />
+                    <stop offset="80%" stopColor="#059669" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#064e3b" stopOpacity={0.08} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.15} />
+                <XAxis
+                  dataKey="shortLabel"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  fontWeight={700}
+                  axisLine={false}
+                  tickLine={false}
+                  dy={10}
+                />
+                <YAxis
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  fontWeight={700}
+                  axisLine={false}
+                  tickLine={false}
+                  unit=" kWh"
+                />
+                <Tooltip
+                  cursor={{ fill: "rgba(99, 102, 241, 0.04)", stroke: "rgba(99, 102, 241, 0.2)", strokeWidth: 1, strokeDasharray: "4 4", rx: 12 }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/80 p-3.5 rounded-2xl shadow-xl text-xs space-y-2 min-w-[210px]">
+                          <p className="font-black text-white">{data.building}</p>
+                          <div className="flex items-center justify-between text-indigo-300">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500 border border-indigo-400" />
+                              Baseline Load:
+                            </span>
+                            <span className="font-bold">{data.Baseline.toLocaleString()} kWh</span>
+                          </div>
+                          <div className="flex items-center justify-between text-emerald-400">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 border border-emerald-400" />
+                              Simulated Load:
+                            </span>
+                            <span className="font-bold">{data.Simulated.toLocaleString()} kWh</span>
+                          </div>
+                          <div className="pt-1.5 border-t border-slate-700/80 flex items-center justify-between text-teal-300 font-extrabold">
+                            <span>Projected Shave:</span>
+                            <span>-{data.Saved.toLocaleString()} kWh (-{data.Pct}%)</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="Baseline"
+                  name="Baseline (kWh)"
+                  fill="url(#simBaselineBarGrad)"
+                  stroke="#818cf8"
+                  strokeWidth={1.5}
+                  radius={[8, 8, 2, 2]}
+                />
+                <Bar
+                  dataKey="Simulated"
+                  name="Simulated (kWh)"
+                  fill="url(#simTargetBarGrad)"
+                  stroke="#34d399"
+                  strokeWidth={1.5}
+                  radius={[8, 8, 2, 2]}
+                />
+              </BarChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>

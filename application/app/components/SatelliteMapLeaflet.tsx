@@ -50,6 +50,7 @@ interface SatelliteMapLeafletProps {
   sector: string;
   onSelectBuilding: (building: BuildingLocation) => void;
   selectedBuilding: BuildingLocation | null;
+  onOpenPlaceManager?: () => void;
 }
 
 // Sector centers with precise institutional coordinates (GCEK Kalahandi Campus exact GPS 19.9143867, 83.1037245)
@@ -295,17 +296,38 @@ function MapController({
 export default function SatelliteMapLeaflet({
   sector,
   onSelectBuilding,
-  selectedBuilding
+  selectedBuilding,
+  onOpenPlaceManager,
 }: SatelliteMapLeafletProps) {
   const [mapType, setMapType] = useState<"satellite" | "streets">("satellite");
-  const activeSectorConfig = SECTOR_COORDINATES[sector] || SECTOR_COORDINATES.engineering_college;
+  const [customPlaces, setCustomPlaces] = useState<any[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("campusiq_custom_places");
+    if (stored) {
+      try {
+        setCustomPlaces(JSON.parse(stored));
+      } catch (e) {}
+    }
+  }, [sector]);
+
+  const customMatch = customPlaces.find((c) => c.id === sector);
+  const activeSectorConfig = customMatch
+    ? {
+        center: customMatch.center,
+        zoom: customMatch.zoom || 17,
+        campus_title: customMatch.name,
+        buildings: customMatch.buildings || [],
+      }
+    : SECTOR_COORDINATES[sector] || SECTOR_COORDINATES.engineering_college;
+
   const [cursorCoords, setCursorCoords] = useState<{ lat: number; lng: number }>({
     lat: activeSectorConfig.center[0],
     lng: activeSectorConfig.center[1]
   });
   const [mapKey, setMapKey] = useState(0);
 
-  const buildings = activeSectorConfig.buildings;
+  const buildings: BuildingLocation[] = activeSectorConfig.buildings || [];
 
   const tileLayers = {
     satellite: {
@@ -318,9 +340,9 @@ export default function SatelliteMapLeaflet({
     }
   };
 
-  const normalCount = buildings.filter((b) => b.live_status === "Normal").length;
-  const warningCount = buildings.filter((b) => b.live_status === "Warning").length;
-  const criticalCount = buildings.filter((b) => b.live_status === "Critical").length;
+  const normalCount = buildings.filter((b: BuildingLocation) => b.live_status === "Normal").length;
+  const warningCount = buildings.filter((b: BuildingLocation) => b.live_status === "Warning").length;
+  const criticalCount = buildings.filter((b: BuildingLocation) => b.live_status === "Critical").length;
 
   return (
     <div data-lenis-prevent="true" className="relative w-full h-[620px] rounded-3xl overflow-hidden border border-slate-200/90 dark:border-slate-800 shadow-lg bg-slate-950 select-none">
@@ -357,7 +379,7 @@ export default function SatelliteMapLeaflet({
         )}
 
         {/* Render GPS Building Markers */}
-        {buildings.map((b) => (
+        {buildings.map((b: BuildingLocation) => (
           <Marker
             key={b.id}
             position={[b.lat, b.lng]}
@@ -413,28 +435,41 @@ export default function SatelliteMapLeaflet({
 
       {/* Top-Right Map Controls & Legend Box */}
       <div className="absolute top-5 right-5 flex flex-col gap-3.5 z-20 items-end">
-        {/* Layer Switcher Button (Satellite / Streets) */}
-        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full p-1.5 shadow-xl border border-slate-200/90 dark:border-slate-700/80 flex items-center gap-1.5">
-          <button
-            onClick={() => setMapType("satellite")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${mapType === "satellite"
-              ? "bg-orange-500 text-white shadow-xs"
-              : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-              }`}
-          >
-            <Layers className="w-4 h-4 stroke-[2.5]" />
-            <span>Satellite</span>
-          </button>
-          <button
-            onClick={() => setMapType("streets")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${mapType === "streets"
-              ? "bg-orange-500 text-white shadow-xs"
-              : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-              }`}
-          >
-            <Navigation className="w-4 h-4 stroke-[2.5]" />
-            <span>Street View</span>
-          </button>
+        {/* Layer Switcher & Manage Places Button */}
+        <div className="flex items-center gap-2">
+          {onOpenPlaceManager && (
+            <button
+              onClick={onOpenPlaceManager}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black bg-slate-900/90 dark:bg-slate-800/95 text-white border border-slate-700/80 shadow-xl hover:bg-orange-500 transition cursor-pointer backdrop-blur-md"
+              title="Add or configure custom campuses, sectors, and building nodes"
+            >
+              <Building className="w-3.5 h-3.5 text-orange-400" />
+              <span>+ Manage Places & Nodes</span>
+            </button>
+          )}
+
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full p-1.5 shadow-xl border border-slate-200/90 dark:border-slate-700/80 flex items-center gap-1.5">
+            <button
+              onClick={() => setMapType("satellite")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${mapType === "satellite"
+                ? "bg-orange-500 text-white shadow-xs"
+                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+            >
+              <Layers className="w-4 h-4 stroke-[2.5]" />
+              <span>Satellite</span>
+            </button>
+            <button
+              onClick={() => setMapType("streets")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${mapType === "streets"
+                ? "bg-orange-500 text-white shadow-xs"
+                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+            >
+              <Navigation className="w-4 h-4 stroke-[2.5]" />
+              <span>Street View</span>
+            </button>
+          </div>
         </div>
 
         {/* Live Status Legend Box matching UI reference */}

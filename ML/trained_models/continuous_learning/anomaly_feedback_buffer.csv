@@ -1,4 +1,7 @@
-logged_at,domain,entity_id,timestamp,is_true_anomaly,operator_notes,feat_kwh,feat_hour
-2026-10-04T01:48:17.633691,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14
-2026-10-04T01:49:45.380773,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14
-2026-10-04T02:29:51.803845,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14
+logged_at,domain,entity_id,timestamp,is_true_anomaly,operator_notes,feat_kwh,feat_hour,feat_records,feat_mean_metric
+2026-10-04T01:48:17.633691,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14.0,,
+2026-10-04T01:49:45.380773,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14.0,,
+2026-10-04T02:29:51.803845,Energy,academic_block,2026-10-04T10:00:00,1,Verified chiller setpoint overrun,1680.0,14.0,,
+2026-10-04T20:41:57.753024,energy,insight_energy_01,2026-10-04T15:11:57.745Z,1,Confirmed by facility engineer,,,,
+2026-10-04T20:47:49.163258,energy,insight_energy_01,2026-10-04T15:17:49.161Z,1,Confirmed by facility engineer,,,,
+2026-10-04T21:15:02.299559,energy,stream_batch_engineering_college,2026-10-04T21:15:02.299559,0,Direct Energy View Sync & Learn Trigger,,,0.0,24850.0

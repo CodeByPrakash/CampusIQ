@@ -18,9 +18,16 @@ const SatelliteMapLeaflet = dynamic(() => import("./SatelliteMapLeaflet"), {
 interface CampusMapViewProps {
   data: any;
   facilityType?: string;
+  facilityName?: string;
+  onOpenPlaceManager?: () => void;
 }
 
-export default function CampusMapView({ data, facilityType = "engineering_college" }: CampusMapViewProps) {
+export default function CampusMapView({
+  data,
+  facilityType = "engineering_college",
+  facilityName = "GCEK Kalahandi Campus",
+  onOpenPlaceManager,
+}: CampusMapViewProps) {
   const [selectedBuilding, setSelectedBuilding] = useState<any>(null);
 
   const totalBuildings = data?.total_buildings || 6;
@@ -35,6 +42,7 @@ export default function CampusMapView({ data, facilityType = "engineering_colleg
         sector={facilityType || data?.facility_type || "engineering_college"}
         onSelectBuilding={setSelectedBuilding}
         selectedBuilding={selectedBuilding}
+        onOpenPlaceManager={onOpenPlaceManager}
       />
 
         {/* Bottom Summary KPI Strip matching reference design */}
