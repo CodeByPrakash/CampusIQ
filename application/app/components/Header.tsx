@@ -19,6 +19,7 @@ import {
   Key,
   Layers,
   Check,
+  Menu,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth, DEMO_PERSONAS, UserRole, FacilitySector } from "../context/AuthContext";
@@ -33,6 +34,7 @@ interface HeaderProps {
   apiConnected?: boolean;
   onOpenPlaceManager?: () => void;
   onOpenUploadStudio?: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
 export default function Header({
@@ -42,6 +44,7 @@ export default function Header({
   onFacilityChange,
   onOpenPlaceManager,
   onOpenUploadStudio,
+  onOpenMobileMenu,
 }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, switchRole } = useAuth();
@@ -137,30 +140,43 @@ export default function Header({
   const currentFacilityObj = allFacilitiesList.find((f) => f.id === selectedFacility) || displayFacilities[0];
 
   return (
-    <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 pb-5 border-b border-slate-200/90 dark:border-slate-800 transition-colors w-full">
-      {/* Page Title, Subtitle & Inline Status */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight truncate">
-            {title}
-          </h1>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800 shadow-xs shrink-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>FastAPI ML Live</span>
+    <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pb-4 sm:pb-5 border-b border-slate-200/90 dark:border-slate-800 transition-colors w-full">
+      {/* Page Title, Subtitle, Mobile Menu Button & Inline Status */}
+      <div className="min-w-0 flex-1 flex items-start gap-3">
+        {/* Mobile Hamburger Drawer Trigger */}
+        {onOpenMobileMenu && (
+          <button
+            onClick={onOpenMobileMenu}
+            aria-label="Open navigation menu"
+            className="lg:hidden p-2 sm:p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/90 text-slate-700 dark:text-slate-200 hover:text-orange-500 hover:border-orange-300 dark:hover:border-orange-500 shadow-xs transition cursor-pointer shrink-0 mt-0.5"
+          >
+            <Menu className="w-5 h-5 text-slate-700 dark:text-slate-200" />
+          </button>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+              {title}
+            </h1>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800 shadow-xs shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>FastAPI ML Live</span>
+            </div>
           </div>
+          <p className="text-xs lg:text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
+            {subtitle}
+          </p>
         </div>
-        <p className="text-xs lg:text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
-          {subtitle}
-        </p>
       </div>
 
       {/* Control Groups Toolbar */}
-      <div className="flex items-center flex-wrap gap-2 shrink-0 justify-start xl:justify-end">
+      <div className="flex items-center flex-wrap gap-2 shrink-0 justify-start lg:justify-end">
         {/* 1. Sector / Facility Selector Pill */}
         <div className="relative shrink-0" ref={facilityMenuRef}>
           <button
             onClick={() => setIsFacilityMenuOpen((prev) => !prev)}
-            className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-black rounded-full pl-2.5 pr-3 py-2 shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition cursor-pointer max-w-[160px] sm:max-w-[200px] md:max-w-[230px]"
+            className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs font-black rounded-full pl-2.5 pr-3 py-2 shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition cursor-pointer max-w-[155px] sm:max-w-[200px] md:max-w-[240px]"
           >
             <div className="w-5 h-5 rounded-full bg-orange-50 dark:bg-orange-950/50 flex items-center justify-center shrink-0 border border-orange-200/50 dark:border-orange-900/50">
               {getFacilityIcon(currentFacilityObj?.sector)}
@@ -176,7 +192,7 @@ export default function Header({
           {isFacilityMenuOpen && (
             <div
               data-lenis-prevent="true"
-              className="absolute left-0 xl:right-0 xl:left-auto mt-2.5 w-84 sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 flex flex-col"
+              className="absolute left-0 sm:left-auto right-0 mt-2.5 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 flex flex-col"
             >
               <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
@@ -325,7 +341,7 @@ export default function Header({
             {profileOpen && (
               <div
                 data-lenis-prevent="true"
-                className="absolute right-0 mt-3 w-88 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl p-4.5 z-50 animate-in fade-in-0 zoom-in-95 max-h-[85vh] overflow-hidden flex flex-col"
+                className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl p-4 sm:p-4.5 z-50 animate-in fade-in-0 zoom-in-95 max-h-[85vh] overflow-hidden flex flex-col"
               >
                 {/* Active User Header */}
                 <div className="pb-3 border-b border-slate-100 dark:border-slate-800 mb-3 shrink-0">

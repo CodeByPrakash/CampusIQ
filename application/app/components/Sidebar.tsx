@@ -16,6 +16,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -35,6 +36,8 @@ interface SidebarProps {
   userRole?: string;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 export default function Sidebar({
@@ -42,6 +45,8 @@ export default function Sidebar({
   onSelectNav,
   isCollapsed,
   onToggleCollapse,
+  isMobileOpen = false,
+  onMobileClose,
 }: SidebarProps) {
   const { user, logout, hasPermission } = useAuth();
 
@@ -57,11 +62,127 @@ export default function Sidebar({
   ];
 
   return (
-    <aside
-      className={`fixed top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 flex flex-col justify-between z-40 select-none shadow-xs transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-20" : "w-80"
-      }`}
-    >
+    <>
+      {/* 1. Mobile Backdrop & Slide-Over Drawer (Visible on < lg screens when isMobileOpen is true) */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Dark Glass Backdrop */}
+          <div
+            onClick={onMobileClose}
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+          />
+
+          {/* Drawer Content */}
+          <aside className="fixed inset-y-0 left-0 w-72 sm:w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xl z-50 animate-in slide-in-from-left duration-300">
+            <div>
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 text-white shrink-0">
+                    <Flame className="w-5 h-5 fill-white" />
+                  </div>
+                  <div>
+                    <h1 className="font-black text-lg tracking-tight text-slate-900 dark:text-white leading-none">
+                      Campus<span className="text-orange-500">IQ</span>
+                    </h1>
+                    <p className="text-[10px] font-extrabold text-slate-400 mt-0.5 uppercase tracking-wider">
+                      Mobile Navigation
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={onMobileClose}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                  aria-label="Close navigation menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation links in Mobile Drawer */}
+              <nav className="space-y-1.5 p-3.5 max-h-[calc(100vh-170px)] overflow-y-auto custom-scrollbar">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeNav === item.id;
+                  const isAuthorized =
+                    hasPermission(item.requiredPerm) ||
+                    hasPermission("view_all") ||
+                    item.id === "dashboard";
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        onSelectNav(item.id);
+                        onMobileClose?.();
+                      }}
+                      className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl font-extrabold transition-all duration-200 text-left cursor-pointer ${
+                        isActive
+                          ? "bg-orange-500 text-white shadow-md shadow-orange-500/25"
+                          : "text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      <Icon
+                        className={`w-5 h-5 shrink-0 ${
+                          isActive ? "text-white stroke-[2.5]" : "text-slate-400 stroke-[2]"
+                        }`}
+                      />
+                      <span className="flex-1 text-sm">{item.label}</span>
+                      {item.id === "ai-insights" && !isActive && (
+                        <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-ping mr-1" />
+                      )}
+                      {!isAuthorized && !isActive && (
+                        <span title="Restricted role view">
+                          <Lock className="w-3.5 h-3.5 text-slate-400 opacity-60" />
+                        </span>
+                      )}
+                      {isActive && <ChevronRight className="w-4 h-4 text-white/80" />}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Mobile Drawer Footer */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+              {user && (
+                <div className="flex items-center justify-between bg-white dark:bg-slate-800 rounded-2xl p-3 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white font-black text-xs shrink-0">
+                      {user.name[0]}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-slate-900 dark:text-white truncate">{user.name}</p>
+                      <p className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider truncate">
+                        {user.roleTitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      logout();
+                      onMobileClose?.();
+                    }}
+                    title="Sign Out"
+                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer shrink-0"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* 2. Desktop Fixed Sidebar (Hidden on < lg screens) */}
+      <aside
+        className={`hidden lg:flex fixed top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 flex-col justify-between z-40 select-none shadow-xs transition-all duration-300 ease-in-out ${
+          isCollapsed ? "w-20" : "w-80"
+        }`}
+      >
       {/* Brand Header */}
       <div>
         <div className={`flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 ${
@@ -191,5 +312,6 @@ export default function Sidebar({
         )}
       </div>
     </aside>
+    </>
   );
 }

@@ -18,7 +18,17 @@ import CampusPlaceManagerModal from "./components/CampusPlaceManagerModal";
 import DataUploadStudioModal from "./components/DataUploadStudioModal";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { Lock, ShieldAlert, ArrowRight, Shield } from "lucide-react";
+import {
+  Lock,
+  ShieldAlert,
+  ArrowRight,
+  Shield,
+  LayoutDashboard,
+  MapPin,
+  Zap,
+  Sparkles,
+  Menu,
+} from "lucide-react";
 import {
   getDashboardOverview,
   getCampusMapData,
@@ -34,6 +44,7 @@ function AppContent() {
   const [activeNav, setActiveNav] = useState<NavItem>("dashboard");
   const [facilityType, setFacilityType] = useState("engineering_college");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isPlaceManagerOpen, setIsPlaceManagerOpen] = useState(false);
   const [isUploadStudioOpen, setIsUploadStudioOpen] = useState(false);
@@ -161,22 +172,24 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#f4f6fb] dark:bg-[#090d16] flex text-slate-800 dark:text-slate-100 transition-colors duration-300">
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation (Desktop Fixed + Mobile Slide-Over Drawer) */}
       <Sidebar
         activeNav={activeNav}
         onSelectNav={(nav) => setActiveNav(nav)}
         userRole={user?.roleTitle}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Area */}
       <main
-        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? "ml-20" : "ml-80"
+        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ease-in-out pb-24 lg:pb-10 ml-0 ${
+          isSidebarCollapsed ? "lg:ml-20" : "lg:ml-80"
         }`}
       >
-        <div className="p-8 lg:p-10 max-w-[1700px] w-full mx-auto space-y-8">
+        <div className="p-3.5 sm:p-6 lg:p-10 max-w-[1700px] w-full mx-auto space-y-6 lg:space-y-8">
           {/* Header */}
           <Header
             title={currentMeta.title}
@@ -185,6 +198,7 @@ function AppContent() {
             onFacilityChange={(f) => setFacilityType(f)}
             onOpenPlaceManager={() => setIsPlaceManagerOpen(true)}
             onOpenUploadStudio={() => setIsUploadStudioOpen(true)}
+            onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
 
           {/* Active View Rendering or RBAC Guard */}
@@ -276,6 +290,84 @@ function AppContent() {
           </div>
         </div>
       </main>
+
+      {/* Mobile Bottom Floating Navigation Dock (Active on screens < lg) */}
+      <nav
+        aria-label="Mobile Navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-slate-800/90 px-2 sm:px-4 py-1.5 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] flex items-center justify-around"
+      >
+        {/* 1. Overview */}
+        <button
+          onClick={() => setActiveNav("dashboard")}
+          className={`flex flex-col items-center justify-center py-1.5 px-2.5 sm:px-4 rounded-2xl transition-all cursor-pointer ${
+            activeNav === "dashboard"
+              ? "text-orange-500 bg-orange-500/10 font-black shadow-xs"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold"
+          }`}
+        >
+          <LayoutDashboard className={`w-5 h-5 ${activeNav === "dashboard" ? "stroke-[2.5]" : "stroke-2"}`} />
+          <span className="text-[10px] mt-1 tracking-tight">Overview</span>
+        </button>
+
+        {/* 2. Map */}
+        <button
+          onClick={() => setActiveNav("campus-map")}
+          className={`flex flex-col items-center justify-center py-1.5 px-2.5 sm:px-4 rounded-2xl transition-all cursor-pointer ${
+            activeNav === "campus-map"
+              ? "text-orange-500 bg-orange-500/10 font-black shadow-xs"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold"
+          }`}
+        >
+          <MapPin className={`w-5 h-5 ${activeNav === "campus-map" ? "stroke-[2.5]" : "stroke-2"}`} />
+          <span className="text-[10px] mt-1 tracking-tight">Map</span>
+        </button>
+
+        {/* 3. Energy */}
+        <button
+          onClick={() => setActiveNav("energy-analytics")}
+          className={`flex flex-col items-center justify-center py-1.5 px-2.5 sm:px-4 rounded-2xl transition-all cursor-pointer ${
+            activeNav === "energy-analytics"
+              ? "text-orange-500 bg-orange-500/10 font-black shadow-xs"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold"
+          }`}
+        >
+          <Zap className={`w-5 h-5 ${activeNav === "energy-analytics" ? "stroke-[2.5]" : "stroke-2"}`} />
+          <span className="text-[10px] mt-1 tracking-tight">Energy</span>
+        </button>
+
+        {/* 4. AI Insights */}
+        <button
+          onClick={() => setActiveNav("ai-insights")}
+          className={`flex flex-col items-center justify-center py-1.5 px-2.5 sm:px-4 rounded-2xl transition-all cursor-pointer relative ${
+            activeNav === "ai-insights"
+              ? "text-orange-500 bg-orange-500/10 font-black shadow-xs"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold"
+          }`}
+        >
+          <div className="relative">
+            <Sparkles className={`w-5 h-5 ${activeNav === "ai-insights" ? "stroke-[2.5]" : "stroke-2"}`} />
+            {activeNav !== "ai-insights" && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+            )}
+          </div>
+          <span className="text-[10px] mt-1 tracking-tight">AI Insights</span>
+        </button>
+
+        {/* 5. More Modules Drawer Trigger */}
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className={`flex flex-col items-center justify-center py-1.5 px-2.5 sm:px-4 rounded-2xl transition-all cursor-pointer ${
+            ["assets-operations", "simulation", "reports", "safety"].includes(activeNav)
+              ? "text-orange-500 bg-orange-500/10 font-black shadow-xs"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold"
+          }`}
+        >
+          <Menu className="w-5 h-5 stroke-2" />
+          <span className="text-[10px] mt-1 tracking-tight">
+            {["assets-operations", "simulation", "reports", "safety"].includes(activeNav) ? "More..." : "More"}
+          </span>
+        </button>
+      </nav>
 
       {/* Interactive Neural LLM Executive Assistant Modal */}
       <AiExecutiveAssistantModal
