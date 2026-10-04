@@ -249,14 +249,14 @@ function createCustomPin(b: BuildingLocation) {
 
   const html = `
     <div style="position: relative; transform: translate(-50%, -100%); cursor: pointer; transition: transform 0.2s; pointer-events: auto; display: flex; flex-direction: column; align-items: center;" onmouseover="this.style.transform='translate(-50%, -105%) scale(1.04)'" onmouseout="this.style.transform='translate(-50%, -100%) scale(1)'">
-      <div style="background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(8px); border-radius: 12px; padding: 5px 10px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.9); max-width: 155px; min-width: 110px; text-align: center;">
-        <div style="font-size: 11px; font-weight: 800; color: #0f172a; line-height: 1.25; font-family: system-ui, sans-serif; word-wrap: break-word;">${b.name}</div>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 2px;">
-          <span style="width: 7px; height: 7px; border-radius: 50%; background-color: ${dotColor}; display: inline-block; shrink: 0; ${pulseClass}"></span>
-          <span style="font-size: 10.5px; font-weight: 700; color: ${textColor}; font-family: system-ui, sans-serif; white-space: nowrap;">${b.status_label}</span>
+      <div style="background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(8px); border-radius: 10px; padding: 4px 7px; box-shadow: 0 6px 18px -3px rgba(0,0,0,0.35), 0 2px 4px -2px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.9); max-width: 130px; min-width: 80px; text-align: center;">
+        <div style="font-size: 10px; font-weight: 800; color: #0f172a; line-height: 1.2; font-family: system-ui, sans-serif; word-wrap: break-word;">${b.name}</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 1.5px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background-color: ${dotColor}; display: inline-block; shrink: 0; ${pulseClass}"></span>
+          <span style="font-size: 9px; font-weight: 700; color: ${textColor}; font-family: system-ui, sans-serif; white-space: nowrap;">${b.status_label}</span>
         </div>
       </div>
-      <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid rgba(255,255,255,0.96); margin-top: -1px;"></div>
+      <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid rgba(255,255,255,0.96); margin-top: -1px;"></div>
     </div>
   `;
 
@@ -345,7 +345,7 @@ export default function SatelliteMapLeaflet({
   const criticalCount = buildings.filter((b: BuildingLocation) => b.live_status === "Critical").length;
 
   return (
-    <div data-lenis-prevent="true" className="relative w-full h-[620px] rounded-3xl overflow-hidden border border-slate-200/90 dark:border-slate-800 shadow-lg bg-slate-950 select-none">
+    <div data-lenis-prevent="true" className="relative w-full h-[460px] sm:h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 dark:border-slate-800 shadow-lg bg-slate-950 select-none">
       {/* Live Map Leaflet Container */}
       <MapContainer
         key={mapKey}
@@ -392,36 +392,36 @@ export default function SatelliteMapLeaflet({
       </MapContainer>
 
       {/* Top-Left GPS Coordinates & Campus Identification Badge */}
-      <div className="absolute top-5 left-5 z-20 flex flex-col gap-2.5 max-w-sm sm:max-w-md">
+      <div className="absolute top-2.5 left-2.5 sm:top-5 sm:left-5 z-20 flex flex-col gap-1.5 sm:gap-2.5 max-w-[46%] sm:max-w-md pointer-events-none">
         {/* Campus Header Pill */}
-        <div className="bg-slate-950/90 backdrop-blur-md rounded-2xl px-4.5 py-3 text-white border border-white/15 shadow-xl flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0">
-              <Building className="w-4.5 h-4.5 stroke-[2.5]" />
+        <div className="bg-slate-950/90 backdrop-blur-md rounded-xl sm:rounded-2xl p-2 sm:px-4.5 sm:py-3 text-white border border-white/15 shadow-xl flex items-center justify-between gap-2 pointer-events-auto">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center shrink-0">
+              <Building className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 stroke-[2.5]" />
             </div>
-            <div>
-              <div className="text-xs font-black tracking-tight text-white flex items-center gap-1.5">
-                <span>{activeSectorConfig.campus_title}</span>
+            <div className="min-w-0">
+              <div className="text-[10px] sm:text-xs font-black tracking-tight text-white truncate">
+                {activeSectorConfig.campus_title}
               </div>
-              <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                <span>Bandopala, Bhawanipatna, Kalahandi</span>
+              <div className="text-[9px] sm:text-[11px] text-slate-400 font-semibold flex items-center gap-1 truncate">
+                <MapPin className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-orange-400 shrink-0" />
+                <span className="truncate">Bandopala, Bhawanipatna</span>
               </div>
             </div>
           </div>
           <button
             onClick={() => setMapKey((k) => k + 1)}
             title="Recenter Map View"
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition cursor-pointer shrink-0"
+            className="p-1 sm:p-2 rounded-lg sm:rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition cursor-pointer shrink-0"
           >
-            <LocateFixed className="w-4 h-4 text-orange-400" />
+            <LocateFixed className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
           </button>
         </div>
 
-        {/* Live GPS Telemetry HUD */}
-        <div className="bg-slate-950/80 backdrop-blur-md rounded-full px-4 py-2 text-white border border-white/10 shadow-lg flex items-center gap-3 text-[11px] font-mono">
-          <div className="flex items-center gap-1.5 text-orange-400 font-black">
-            <Crosshair className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: "8s" }} />
+        {/* Live GPS Telemetry HUD (Desktop & Tablet) */}
+        <div className="hidden sm:flex bg-slate-950/80 backdrop-blur-md rounded-full px-3.5 py-1.5 text-white border border-white/10 shadow-lg items-center gap-2.5 text-[10px] sm:text-[11px] font-mono pointer-events-auto w-fit">
+          <div className="flex items-center gap-1 text-orange-400 font-black">
+            <Crosshair className="w-3 h-3 animate-spin" style={{ animationDuration: "8s" }} />
             <span>GIS HUD</span>
           </div>
           <div className="text-slate-300">
@@ -434,63 +434,84 @@ export default function SatelliteMapLeaflet({
       </div>
 
       {/* Top-Right Map Controls & Legend Box */}
-      <div className="absolute top-5 right-5 flex flex-col gap-3.5 z-20 items-end">
-        {/* Layer Switcher & Manage Places Button */}
-        <div className="flex items-center gap-2">
-          {onOpenPlaceManager && (
-            <button
-              onClick={onOpenPlaceManager}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black bg-slate-900/90 dark:bg-slate-800/95 text-white border border-slate-700/80 shadow-xl hover:bg-orange-500 transition cursor-pointer backdrop-blur-md"
-              title="Add or configure custom campuses, sectors, and building nodes"
-            >
-              <Building className="w-3.5 h-3.5 text-orange-400" />
-              <span>+ Manage Places & Nodes</span>
-            </button>
-          )}
-
-          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full p-1.5 shadow-xl border border-slate-200/90 dark:border-slate-700/80 flex items-center gap-1.5">
+      <div className="absolute top-2.5 right-2.5 sm:top-5 sm:right-5 flex flex-col gap-1.5 sm:gap-3 z-20 items-end">
+        {/* Layer Switcher & Manage Places (Stacked vertically on mobile, side-by-side on desktop) */}
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2">
+          {/* Layer Toggle Pill */}
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full p-1 sm:p-1.5 shadow-xl border border-slate-200/90 dark:border-slate-700/80 flex items-center gap-1 sm:gap-1.5 shrink-0">
             <button
               onClick={() => setMapType("satellite")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${mapType === "satellite"
-                ? "bg-orange-500 text-white shadow-xs"
-                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
+              className={`flex items-center gap-1 sm:gap-2 px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-black transition cursor-pointer ${
+                mapType === "satellite"
+                  ? "bg-orange-500 text-white shadow-xs"
+                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+              }`}
             >
-              <Layers className="w-4 h-4 stroke-[2.5]" />
+              <Layers className="w-3 h-3 sm:w-4 sm:h-4 stroke-[2.5]" />
               <span>Satellite</span>
             </button>
             <button
               onClick={() => setMapType("streets")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition cursor-pointer ${mapType === "streets"
-                ? "bg-orange-500 text-white shadow-xs"
-                : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
+              className={`flex items-center gap-1 sm:gap-2 px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-black transition cursor-pointer ${
+                mapType === "streets"
+                  ? "bg-orange-500 text-white shadow-xs"
+                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+              }`}
             >
-              <Navigation className="w-4 h-4 stroke-[2.5]" />
-              <span>Street View</span>
+              <Navigation className="w-3 h-3 sm:w-4 sm:h-4 stroke-[2.5]" />
+              <span className="hidden sm:inline">Street View</span>
+              <span className="sm:hidden">Street</span>
             </button>
           </div>
+
+          {/* Manage Places Button */}
+          {onOpenPlaceManager && (
+            <button
+              onClick={onOpenPlaceManager}
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs font-black bg-slate-900/90 dark:bg-slate-800/95 text-white border border-slate-700/80 shadow-xl hover:bg-orange-500 transition cursor-pointer backdrop-blur-md shrink-0"
+              title="Add or configure custom campuses, sectors, and building nodes"
+            >
+              <Building className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400 shrink-0" />
+              <span className="hidden sm:inline">+ Manage Places & Nodes</span>
+              <span className="sm:hidden">+ Places</span>
+            </button>
+          )}
         </div>
 
-        {/* Live Status Legend Box matching UI reference */}
-        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl p-5 shadow-xl border border-slate-200/90 dark:border-slate-700/80 min-w-[190px]">
-          <h4 className="text-xs font-black text-slate-900 dark:text-white mb-3 uppercase tracking-wider">Facility Nodes</h4>
-          <div className="space-y-2.5 text-xs">
+        {/* Mobile Mini Legend Strip (< sm screens) */}
+        <div className="sm:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-full px-2.5 py-1 shadow-lg border border-slate-200/90 dark:border-slate-700/80 flex items-center gap-2 text-[10px]">
+          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {normalCount}
+          </span>
+          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-black">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {warningCount}
+          </span>
+          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-black">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> {criticalCount}
+          </span>
+        </div>
+
+        {/* Desktop / Tablet Rich Legend Box (>= sm screens) */}
+        <div className="hidden sm:block bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl p-4 sm:p-5 shadow-xl border border-slate-200/90 dark:border-slate-700/80 min-w-[170px] sm:min-w-[190px]">
+          <h4 className="text-[11px] sm:text-xs font-black text-slate-900 dark:text-white mb-2.5 sm:mb-3 uppercase tracking-wider">Facility Nodes</h4>
+          <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300 font-bold">
-                <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-xs" /> Normal
+              <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" /> Normal
               </span>
               <span className="font-black text-slate-900 dark:text-white">{normalCount}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300 font-bold">
-                <span className="w-3 h-3 rounded-full bg-amber-500 shadow-xs" /> Warning
+              <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs" /> Warning
               </span>
               <span className="font-black text-slate-900 dark:text-white">{warningCount}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300 font-bold">
-                <span className="w-3 h-3 rounded-full bg-rose-500 shadow-xs" /> Critical
+              <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-bold">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-xs" /> Critical
               </span>
               <span className="font-black text-slate-900 dark:text-white">{criticalCount}</span>
             </div>

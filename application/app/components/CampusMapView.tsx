@@ -45,45 +45,45 @@ export default function CampusMapView({
         onOpenPlaceManager={onOpenPlaceManager}
       />
 
-        {/* Bottom Summary KPI Strip matching reference design */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          <div className="dashboard-card p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center shadow-xs shrink-0 border border-amber-200/60 dark:border-amber-800/60">
-              <Building className="w-7 h-7 stroke-[2.5]" />
+        {/* Bottom Summary KPI Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
+          <div className="dashboard-card p-3.5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-3 sm:gap-5">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center shadow-xs shrink-0 border border-amber-200/60 dark:border-amber-800/60">
+              <Building className="w-5 h-5 sm:w-7 sm:h-7 stroke-[2.5]" />
             </div>
-            <div>
-              <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Campus Structures</p>
-              <h4 className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white mt-1">11 Nodes</h4>
-            </div>
-          </div>
-
-          <div className="dashboard-card p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-500 flex items-center justify-center shadow-xs shrink-0 border border-sky-200/60 dark:border-sky-800/60">
-              <Activity className="w-7 h-7 stroke-[2.5]" />
-            </div>
-            <div>
-              <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Active IoT Nodes</p>
-              <h4 className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white mt-1">118 Sensors</h4>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">Campus Structures</p>
+              <h4 className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate">11 Nodes</h4>
             </div>
           </div>
 
-          <div className="dashboard-card p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center shadow-xs shrink-0 border border-rose-200/60 dark:border-rose-800/60">
-              <AlertTriangle className="w-7 h-7 stroke-[2.5]" />
+          <div className="dashboard-card p-3.5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-3 sm:gap-5">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-500 flex items-center justify-center shadow-xs shrink-0 border border-sky-200/60 dark:border-sky-800/60">
+              <Activity className="w-5 h-5 sm:w-7 sm:h-7 stroke-[2.5]" />
             </div>
-            <div>
-              <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Active Anomalies</p>
-              <h4 className="text-2xl lg:text-3xl font-black text-rose-600 dark:text-rose-400 mt-1">2 Alerts</h4>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">Active IoT Nodes</p>
+              <h4 className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate">118 Sensors</h4>
             </div>
           </div>
 
-          <div className="dashboard-card p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shadow-xs shrink-0 border border-emerald-200/60 dark:border-emerald-800/60">
-              <Shield className="w-7 h-7 stroke-[2.5]" />
+          <div className="dashboard-card p-3.5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-3 sm:gap-5">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center shadow-xs shrink-0 border border-rose-200/60 dark:border-rose-800/60">
+              <AlertTriangle className="w-5 h-5 sm:w-7 sm:h-7 stroke-[2.5]" />
             </div>
-            <div>
-              <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">GIS Health Score</p>
-              <h4 className="text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">94%</h4>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">Active Anomalies</p>
+              <h4 className="text-lg sm:text-2xl lg:text-3xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1 truncate">2 Alerts</h4>
+            </div>
+          </div>
+
+          <div className="dashboard-card p-3.5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center gap-3 sm:gap-5">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shadow-xs shrink-0 border border-emerald-200/60 dark:border-emerald-800/60">
+              <Shield className="w-5 h-5 sm:w-7 sm:h-7 stroke-[2.5]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">GIS Health Score</p>
+              <h4 className="text-lg sm:text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 truncate">94%</h4>
             </div>
           </div>
         </div>
