@@ -494,28 +494,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(true);
       } catch (e) {
         localStorage.removeItem("campusiq_user");
+        setUser(null);
+        setIsAuthenticated(false);
       }
     } else {
-      // Default to Dean for college campus
-      const defaultPersona = DEMO_PERSONAS.find((p) => p.id === "college_dean") || DEMO_PERSONAS[0];
-      const defaultUser: UserProfile = {
-        id: `usr-${defaultPersona.id}`,
-        name: defaultPersona.name,
-        email: defaultPersona.email,
-        role: defaultPersona.id,
-        roleTitle: defaultPersona.title,
-        department: defaultPersona.department,
-        sector: defaultPersona.sector,
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-        permissions: defaultPersona.permissions,
-        authorizations: defaultPersona.authorizations,
-        sectorBadge: defaultPersona.sectorBadge,
-        defaultSector: defaultPersona.defaultSector,
-        isSuperAdmin: defaultPersona.isSuperAdmin,
-      };
-      setUser(defaultUser);
-      setIsAuthenticated(true);
-      localStorage.setItem("campusiq_user", JSON.stringify(defaultUser));
+      // First visit: Do not auto-login, show the login page
+      setUser(null);
+      setIsAuthenticated(false);
     }
   }, []);
 

@@ -18,6 +18,8 @@ import {
   GraduationCap,
   Factory,
   Landmark,
+  Check,
+  RotateCcw,
 } from "lucide-react";
 import { DEMO_PERSONAS, UserRole, FacilitySector, useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -49,6 +51,7 @@ export default function LoginView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<UserRole>("college_dean");
+  const [rememberSession, setRememberSession] = useState(true);
 
   // Filter personas strictly by selected sector
   const filteredPersonas = DEMO_PERSONAS.filter((p) => {
@@ -161,7 +164,6 @@ export default function LoginView() {
               className="hidden sm:flex items-center gap-2 bg-white/35 dark:bg-slate-900/45 backdrop-blur-xl px-3.5 py-2 rounded-2xl border-2 border-white/60 dark:border-white/15 text-xs font-black text-emerald-900 dark:text-emerald-300 shadow-[0_10px_30px_rgba(0,0,0,0.15)]"
               aria-label="System status: FastAPI ML v2.4 Live"
             >
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50" aria-hidden="true" />
               <span>ML Engine Active</span>
             </div>
 
@@ -236,11 +238,10 @@ export default function LoginView() {
                     aria-selected={isSelected}
                     aria-controls="persona-panel"
                     onClick={() => handleSectorChange(sec.id)}
-                    className={`p-2.5 sm:p-3 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 backdrop-blur-md focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${
-                      isSelected
-                        ? "border-2 border-orange-500 bg-orange-500/25 dark:bg-orange-500/30 text-orange-950 dark:text-orange-100 shadow-md ring-2 ring-orange-500/40 font-black"
-                        : "border border-white/50 dark:border-white/10 bg-white/20 hover:bg-white/40 dark:bg-white/5 dark:hover:bg-white/15 text-slate-900 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white hover:border-white/80"
-                    }`}
+                    className={`p-2.5 sm:p-3 rounded-2xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 backdrop-blur-md focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${isSelected
+                      ? "border-2 border-orange-500 bg-orange-500/25 dark:bg-orange-500/30 text-orange-950 dark:text-orange-100 shadow-md ring-2 ring-orange-500/40 font-black"
+                      : "border border-white/50 dark:border-white/10 bg-white/20 hover:bg-white/40 dark:bg-white/5 dark:hover:bg-white/15 text-slate-900 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white hover:border-white/80"
+                      }`}
                   >
                     <IconComponent className={`w-5 h-5 ${isSelected ? "text-orange-500" : "text-slate-700 dark:text-slate-300"}`} />
                     <span className="text-[11px] font-black tracking-tight leading-tight line-clamp-1">
@@ -281,25 +282,23 @@ export default function LoginView() {
                     type="button"
                     onClick={() => handleSelectPersona(p)}
                     onDoubleClick={() => handleInstantLogin(p.id)}
-                    className={`p-3 rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 backdrop-blur-md focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${
-                      isSelected
-                        ? "border-2 border-orange-500 bg-orange-500/25 dark:bg-orange-500/30 ring-2 ring-orange-500/40 shadow-md"
-                        : isSuper
+                    className={`p-3 rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 backdrop-blur-md focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${isSelected
+                      ? "border-2 border-orange-500 bg-orange-500/25 dark:bg-orange-500/30 ring-2 ring-orange-500/40 shadow-md"
+                      : isSuper
                         ? "border border-purple-400/50 dark:border-purple-500/30 bg-purple-500/20 hover:bg-purple-500/30"
                         : "border border-white/50 dark:border-white/10 bg-white/20 hover:bg-white/40 dark:bg-white/5 dark:hover:bg-white/15 hover:border-white/80"
-                    }`}
+                      }`}
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1.5">
                         <span className="text-xs font-black text-slate-950 dark:text-white truncate">{p.title}</span>
                         <span
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider ${
-                            isSelected
-                              ? "bg-orange-500 text-white shadow-xs"
-                              : isSuper
+                          className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider ${isSelected
+                            ? "bg-orange-500 text-white shadow-xs"
+                            : isSuper
                               ? "bg-purple-600/30 text-purple-950 dark:text-purple-200 border border-purple-400/40"
                               : "bg-white/40 dark:bg-white/10 text-slate-900 dark:text-slate-200 border border-white/40 dark:border-white/15"
-                          }`}
+                            }`}
                         >
                           {p.badge}
                         </span>
@@ -376,15 +375,33 @@ export default function LoginView() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-900 dark:text-slate-200 font-bold pt-0.5">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  className="w-4 h-4 rounded border-white/60 dark:border-slate-700 bg-white/50 dark:bg-slate-900 text-orange-500 focus:ring-orange-500 cursor-pointer"
-                />
-                <span className="drop-shadow-xs">Remember session</span>
+            <div className="flex items-center justify-between gap-3 text-xs pt-1">
+              <label
+                onClick={() => setRememberSession(!rememberSession)}
+                className="flex items-center gap-2.5 cursor-pointer select-none group"
+              >
+                <div
+                  role="checkbox"
+                  aria-checked={rememberSession}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === " " || e.key === "Enter") {
+                      e.preventDefault();
+                      setRememberSession(!rememberSession);
+                    }
+                  }}
+                  className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-200 border-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none ${rememberSession
+                    ? "bg-gradient-to-tr from-orange-500 to-amber-400 border-orange-300 text-white shadow-md shadow-orange-500/40 ring-2 ring-orange-500/30"
+                    : "bg-white/40 dark:bg-white/10 border-white/80 dark:border-white/20 text-transparent hover:border-orange-400 backdrop-blur-md"
+                    }`}
+                >
+                  <Check className={`w-3.5 h-3.5 stroke-[3.5] transition-transform duration-150 ${rememberSession ? "scale-100" : "scale-0"}`} />
+                </div>
+                <span className="font-extrabold text-slate-950 dark:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] tracking-wide dark:group-hover:text-orange-400 transition-colors">
+                  Remember session
+                </span>
               </label>
+
               <button
                 type="button"
                 onClick={() => {
@@ -393,9 +410,10 @@ export default function LoginView() {
                     setEmail(activePersonaObj.email);
                   }
                 }}
-                className="text-orange-700 dark:text-orange-300 hover:text-orange-800 dark:hover:text-orange-200 hover:underline cursor-pointer focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none rounded-md px-1 font-extrabold drop-shadow-xs"
+                className="text-xs font-black px-3 py-1.5 rounded-xl bg-orange-500/25 hover:bg-orange-500/40 text-orange-950 dark:text-orange-100 border border-orange-400/60 hover:border-orange-400 backdrop-blur-md transition-all cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none flex items-center gap-1.5 drop-shadow-xs"
               >
-                Reset Demo Password
+                <RotateCcw className="w-3.5 h-3.5 text-orange-800 dark:text-orange-300 stroke-[2.5]" />
+                <span>Reset Demo Password</span>
               </button>
             </div>
 
