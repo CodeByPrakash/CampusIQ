@@ -13,27 +13,53 @@ from fastapi import FastAPI, Query, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-# Add ML root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# Add ML root and project root to path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+ml_dir = os.path.abspath(os.path.join(current_dir, '..'))
+project_root = os.path.abspath(os.path.join(ml_dir, '..'))
 
-from ML.config.facility_config import (
-    FACILITY_TYPES, DEFAULT_FACILITY, get_facility_config, get_all_facility_types, get_buildings
-)
-from ML.models import (
-    EnergyForecaster,
-    EnergyAnomalyDetector,
-    WaterAnomalyDetector,
-    WastePredictor,
-    AQIForecaster,
-    PredictiveMaintenanceModel,
-    FacilityHealthEngine,
-    ScenarioSimulator,
-    SustainabilityScorer,
-    SafetyRiskClassifier,
-    AlertClassifier,
-    RecommendationEngine,
-    ContinuousLearningPipeline
-)
+for p in [project_root, ml_dir, current_dir]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+try:
+    from ML.config.facility_config import (
+        FACILITY_TYPES, DEFAULT_FACILITY, get_facility_config, get_all_facility_types, get_buildings
+    )
+    from ML.models import (
+        EnergyForecaster,
+        EnergyAnomalyDetector,
+        WaterAnomalyDetector,
+        WastePredictor,
+        AQIForecaster,
+        PredictiveMaintenanceModel,
+        FacilityHealthEngine,
+        ScenarioSimulator,
+        SustainabilityScorer,
+        SafetyRiskClassifier,
+        AlertClassifier,
+        RecommendationEngine,
+        ContinuousLearningPipeline
+    )
+except ImportError:
+    from config.facility_config import (
+        FACILITY_TYPES, DEFAULT_FACILITY, get_facility_config, get_all_facility_types, get_buildings
+    )
+    from models import (
+        EnergyForecaster,
+        EnergyAnomalyDetector,
+        WaterAnomalyDetector,
+        WastePredictor,
+        AQIForecaster,
+        PredictiveMaintenanceModel,
+        FacilityHealthEngine,
+        ScenarioSimulator,
+        SustainabilityScorer,
+        SafetyRiskClassifier,
+        AlertClassifier,
+        RecommendationEngine,
+        ContinuousLearningPipeline
+    )
 
 app = FastAPI(
     title="CampusIQ Facility Intelligence ML API",
@@ -48,6 +74,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# -------------------------------------------------------------
+# HEALTH CHECK & SERVICE STATUS (Render / Cloud Health Monitoring)
+# -------------------------------------------------------------
+@app.get("/")
+@app.get("/health")
+@app.get("/api/v1/health")
+def health_check():
+    """Health check endpoint for Render service uptime monitoring."""
+    return {
+        "status": "healthy",
+        "service": "CampusIQ ML Backend",
+        "version": "2.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "models_loaded": len(MODELS) > 0,
+        "active_sectors": list(FACILITY_TYPES.keys()) if 'FACILITY_TYPES' in globals() else ["engineering_college"]
+    }
 
 # Global model holders & cached datasets
 MODELS = {}
